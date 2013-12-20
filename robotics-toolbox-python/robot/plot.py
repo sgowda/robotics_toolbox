@@ -126,24 +126,30 @@ from Link import *
 from utility import *
 from transform import *
 from robot import *
-import mpl_toolkits.mplot3d.axes3d as p3
-import pylab as p   # for figure
 import matplotlib.pyplot as plt
+import numpy as np
 
 
-def plot(robot, tg, workspace=None, delay=None, cylinder=None, mag=None, perspective=True, Raise=True, render=True, loop=True, base=True, wrist=True, shadow=True, name=True, xyz=True,jaxes=True,joints=True):
+def plot(robot, tg, **kwargs): 
+    ## set all the defaults for the kwargs
+    defaults = dict(workspace=None, delay=None, cylinder=None, mag=None, perspective=True, Raise=True, render=True, loop=True, base=True, wrist=True, shadow=True, name=True, xyz=True, jaxes=True, joints=True)
+    for item, val in defaults.iteritems():
+        if item not in kwargs:
+            kwargs[item] = val
+
+    opt = struct()
+    opt.__dict__ = kwargs
 
     # opts = PLOT(robot, options)
     #  just convert options list to an options struct
     
-    opt = plot_options(robot, workspace, delay, cylinder, mag, perspective, Raise, render, loop, base, wrist, shadow, name, xyz, jaxes, joints)
-    return
+    #opt = plot_options(robot, workspace, delay, cylinder, mag, perspective, Raise, render, loop, base, wrist, shadow, name, xyz, jaxes, joints)
 
     #Check to see if correct numper of joint angles in Q 
-    np = numrows(tg)
+    stuff = tg.shape[0] #np.numrows(tg)
     n = robot.n
 
-    if numcols(tg) != n:
+    if len(tg) != robot.n:
         error('Insufficient columns in q')
 
     
@@ -154,7 +160,7 @@ def plot(robot, tg, workspace=None, delay=None, cylinder=None, mag=None, perspec
         # no robot of this name exists
 
         # create one
-        ax = newplot()
+        ax = plt.subplot(111)
         h = create_new_robot(robot, opt)
 
         # save the handles in the passed robot object, and
@@ -181,19 +187,15 @@ def plot(robot, tg, workspace=None, delay=None, cylinder=None, mag=None, perspec
         figure(gcf)
     
 
-    while true:
-        for p in range(0,np):
+    while True:
+        for p in range(0,stuff):
             for r in rh.T:
                 animate( get(r, 'UserData'), tg[p,:], opt)
                 if opt.delay > 0:
                     pause(opt.delay)
-                
-            
         
         if ~opt.loop:
             break
-        
-    
 
     # save the last joint angles away in the graphical robot
     for r in rh.T:
@@ -201,9 +203,7 @@ def plot(robot, tg, workspace=None, delay=None, cylinder=None, mag=None, perspec
         rr.q = tg[-1,:]
         set(r, 'UserData', rr)
     
-    if nargout > 0:
-        retval = robot
-    
+    return robot
     
 
 #PLOT_OPTIONS
@@ -212,10 +212,16 @@ def plot(robot, tg, workspace=None, delay=None, cylinder=None, mag=None, perspec
 #
 # Returns an options structure
 
+class struct(object):
+    pass
+
 def plot_options(robot, workspace, delay, cylinder, mag, perspective, Raise, render, loop, base, wrist, shadow, name, xyz, jaxes, joints):
+    '''
     # process a cell array of options and return a struct
 
     # define all possible options and their default values
+    '''
+    o = struct()
     o.erasemode = 'normal'
 
     # set workspace
@@ -223,10 +229,11 @@ def plot_options(robot, workspace, delay, cylinder, mag, perspective, Raise, ren
         #
         # simple heuristic to figure the maximum reach of the robot
         #
-        L = robot.links()
+        L = robot.links
         reach = 0
-        for i in range(1, robot.n):
-            reach = reach + abs(L(i).a) + abs(L(i).d)
+        #for i in range(1, robot.n):
+        for link in robot.links:
+            reach = reach + abs(link.a) + abs(link.d)
 
         o.workspace = [-reach, reach, -reach, reach, -reach, reach]
         o.mag = reach/10
