@@ -14,6 +14,7 @@ from robot import *
 from plot import *
 
 import numpy as np
+import kinematics
 
 def fkine(robot, q):
     '''
@@ -215,8 +216,8 @@ class SerialLink(object):
     def fkine(self, q):
         return fkine(self, q)
 
-    def iknie(self, tr, q=None, m=None):
-        return iknie(self, tr, q=None, m=None)
+    def ikine(self, tr, q=None, m=None):
+        return kinematics.ikine(self, tr, q=None, m=None)
     def ikine560(robot, T, configuration=''):
         return ikine560(robot, T, configuration='')
     
@@ -230,8 +231,28 @@ class SerialLink(object):
     def ospace(self, q, qd):
         return ospace(self, q, qd)
 
-    def plot(self, tg, varargin):
-        return plot(self, tg, varargin)
+    def plot(self, q, **kwargs):
+        import matplotlib.pyplot as plt
+        t, allt = self.fkine(q)
+        joint_pos = allt[0:3,-1,:].T
+        
+        fig = plt.figure()
+        ax = plt.subplot(111, projection='3d')
+        ax.plot(joint_pos[:,0], joint_pos[:,1], joint_pos[:,2], linewidth=3)
+        ax.plot(joint_pos[:,0], joint_pos[:,1], -30*np.ones_like(joint_pos[:,2]), linewidth=3, color='gray')
+        
+        ax.plot([0,0], [0,0], [-30, 0], linewidth=3, color='r')
+        ax.set_xlim([-30, 30])
+        ax.set_ylim([-30, 30])
+        ax.set_zlim([-30, 30])
+        
+        ax.set_xlabel('x')
+        ax.set_ylabel('y')
+        ax.set_zlabel('z')
+        
+        plt.show()
+
+        #return plot(self, tg, **kwargs)
     
     
 ##------------------------------------------------------------------------------------------------
