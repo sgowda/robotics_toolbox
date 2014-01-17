@@ -11,8 +11,6 @@ from numpy.linalg import norm
 from Quaternion import *
 
 
-print "in transform"
-
 def rotx(theta):
     """
     Rotation about X-axis

@@ -15,6 +15,7 @@ from plot import *
 
 import numpy as np
 import kinematics
+import jacobian
 
 def fkine(robot, q):
     '''
@@ -208,9 +209,9 @@ class SerialLink(object):
 
     #from Jacobain
     def jacob0(self, q):
-        return jacob0(self,q)
+        return jacobian.jacob0(self,q)
     def jacobn(self, q):
-        return jacobn(self, q)
+        return jacobian.jacobn(self, q)
 
     #form Kinematics
     def fkine(self, q):

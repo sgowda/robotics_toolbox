@@ -47,7 +47,6 @@ from Link import *
 from SerialLink import *
 
 
-print "in puma560"
 L = [];
 L.append( Link(alpha=pi/2,  a=0,      d=0) )
 L.append( Link(alpha=0,     a=0.4318, d=0) )

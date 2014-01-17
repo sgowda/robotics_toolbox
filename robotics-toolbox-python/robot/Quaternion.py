@@ -10,8 +10,6 @@ from utility import *
 import transform as T
 import copy
 
-print "in Quaternion"
-
 # Copyright (C) 1999-2002, by Peter I. Corke
 
 class Quaternion:

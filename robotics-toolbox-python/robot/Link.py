@@ -9,6 +9,7 @@ from numpy import *
 from utility import *
 from transform import *
 import copy
+import numpy as np
 
 
 class Link:
@@ -315,11 +316,13 @@ class Link:
         coordinate C{q}.
         
         @type q: number
-        @param q: joint coordinate
+        @param q: joint coordinatez
         @rtype: homogeneous transformation
         @return: Link transform M{A(q)}
         """
-        
+        if hasattr(self, 'offset'):
+            q += self.offset        
+
         an = self.a
         dn = self.d
         theta = self.theta
@@ -329,15 +332,17 @@ class Link:
         else:
             dn = q      # prismatic
 
-        sa = sin(self.alpha); ca = cos(self.alpha);
-        st = sin(theta); ct = cos(theta);
+        sa = sin(self.alpha)
+        ca = cos(self.alpha)
+        st = sin(theta)
+        ct = cos(theta)
 
         if self.convention == Link.LINK_DH:
             # standard
-            t =   mat([[ ct,    -st*ca, st*sa,  an*ct],
-                    [st,    ct*ca,  -ct*sa, an*st],
-                    [0, sa, ca, dn],
-                    [0, 0,  0,  1]]);
+            t = np.mat([[ct, -st*ca, st*sa,  an*ct],
+                        [st, ct*ca,  -ct*sa, an*st],
+                        [0,  sa,     ca,     dn],
+                        [0,  0,      0,      1]]);
 
         else:
             # modified
@@ -347,3 +352,9 @@ class Link:
                 [0, 0,  0,  1]]);
 
         return t;
+    def __eq__(self, other):
+        if not isinstance(other, Link):
+            return False
+        else:
+            return self.d == other.d and self.a == other.a and self.alpha == other.alpha and self.sigma == other.sigma and self.convention == other.convention
+    
