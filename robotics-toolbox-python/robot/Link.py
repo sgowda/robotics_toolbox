@@ -10,6 +10,7 @@ from utility import *
 from transform import *
 import copy
 import numpy as np
+import math
 
 
 class Link:
@@ -85,6 +86,9 @@ class Link:
         self.B = None
         self.Tc = None
         self.qlim = None
+
+        self._cached_tr = np.mat(np.zeros([4,4]))
+        self._cached_tr[-1,-1] = 1
 
         return None
 
@@ -202,7 +206,7 @@ class Link:
         return l2;
 
 
-# methods to set kinematic or dynamic parameters
+    # methods to set kinematic or dynamic parameters
 
     fields = ["theta", "d", "a", "alpha", "sigma", "offset", "m", "Jm", "G", "B", "convention"];
     
@@ -238,10 +242,14 @@ class Link:
         """
     
         if value == None:
-            self.__dict__[name] = value;
-            return;
-            
-        if name in self.fields:
+            self.__dict__[name] = value
+            return
+
+        if name == 'alpha':
+            self.__dict__['alpha'] = value
+            self.__dict__['sa'] = np.sin(value)
+            self.__dict__['ca'] = np.cos(value)
+        elif name in self.fields:
             # scalar parameter
             if isinstance(value, (ndarray,matrix)) and value.shape != (1,1):
                 raise ValueError, "Scalar required"
@@ -287,6 +295,8 @@ class Link:
                 self.__dict__[name] = mat(v);
             else:
                 raise ValueError
+        elif name == '_cached_tr':
+            self.__dict__['_cached_tr'] = value
         else:
             raise NameError, "Unknown attribute <%s> of link" % name
 
@@ -309,7 +319,7 @@ class Link:
 
         return (q > self.qlim[1,0]) - (q < self.qlim[0,0])
 
-    def tr(self, q):
+    def tr(self, q, deep_copy=False):
         """
         Compute the transformation matrix for this link.  This is a function
         of kinematic parameters, the kinematic model (DH or MDH) and the joint
@@ -332,19 +342,36 @@ class Link:
         else:
             dn = q      # prismatic
 
-        sa = sin(self.alpha)
-        ca = cos(self.alpha)
-        st = sin(theta)
-        ct = cos(theta)
+        sa = self.sa #sin(self.alpha)
+        ca = self.ca #cos(self.alpha)
+
+        st = math.sin(theta)
+        ct = math.cos(theta)
 
         if self.convention == Link.LINK_DH:
             # standard
-            t = np.mat([[ct, -st*ca, st*sa,  an*ct],
-                        [st, ct*ca,  -ct*sa, an*st],
-                        [0,  sa,     ca,     dn],
-                        [0,  0,      0,      1]]);
+            if deep_copy:
+                t = np.mat([[ct, -st*ca, st*sa,  an*ct],
+                            [st, ct*ca,  -ct*sa, an*st],
+                            [0,  sa,     ca,     dn],
+                            [0,  0,      0,      1]]);
+                return t
+            else:
+                self._cached_tr[0,0] = ct
+                self._cached_tr[0,1] = -st*ca
+                self._cached_tr[0,2] = st*sa
+                self._cached_tr[0,3] = an*ct
+                self._cached_tr[1,0] = st
+                self._cached_tr[1,1] = ct*ca
+                self._cached_tr[1,2] = -ct*sa
+                self._cached_tr[1,3] = an*st
+                self._cached_tr[2,1] = sa
+                self._cached_tr[2,2] = ca
+                self._cached_tr[2,3] = dn
+                return self._cached_tr
 
         else:
+            raise NotImplementedError
             # modified
             t =   mat([[ ct,    -st,    0,  an],
                 [st*ca, ct*ca,  -sa,    -sa*dn],

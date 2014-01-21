@@ -17,19 +17,24 @@ import numpy as np
 import kinematics
 import jacobian
 
-def fkine(robot, q):
+def fkine(robot, q, return_allt=False):
     '''
     evaluate fkine for each point on a trajectory of
     theta_i or q_i data
     '''
     n = robot.n;
-    allt = np.zeros([4, 4, n])
+    if return_allt:
+        allt = np.zeros([4, 4, n])
+    else:
+        allt = None
+
     L = robot.links;
     if len(q) == n:
         t = robot.base
         for i in range(n):
             t = t * L[i].tr(q[i])
-            allt[:,:,i] = t
+            if return_allt:
+                allt[:,:,i] = t
         t = t * robot.tool;
 
     else:
@@ -214,8 +219,8 @@ class SerialLink(object):
         return jacobian.jacobn(self, q)
 
     #form Kinematics
-    def fkine(self, q):
-        return fkine(self, q)
+    def fkine(self, q, **kwargs):
+        return fkine(self, q, **kwargs)
 
     def ikine(self, tr, q=None, m=None):
         return kinematics.ikine(self, tr, q=None, m=None)
@@ -234,7 +239,7 @@ class SerialLink(object):
 
     def plot(self, q, **kwargs):
         import matplotlib.pyplot as plt
-        t, allt = self.fkine(q)
+        t, allt = self.fkine(q, return_allt=True)
         joint_pos = allt[0:3,-1,:].T
         
         fig = plt.figure()
