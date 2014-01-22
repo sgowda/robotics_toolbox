@@ -29,6 +29,7 @@ def fkine(robot, q, return_allt=False):
         allt = None
 
     L = robot.links;
+
     if len(q) == n:
         t = robot.base
         for i in range(n):

@@ -11,6 +11,7 @@ from transform import *
 import copy
 import numpy as np
 import math
+import time
 
 
 class Link:
@@ -89,6 +90,7 @@ class Link:
 
         self._cached_tr = np.mat(np.zeros([4,4]))
         self._cached_tr[-1,-1] = 1
+        self.prev_q = -10000
 
         return None
 
@@ -297,6 +299,8 @@ class Link:
                 raise ValueError
         elif name == '_cached_tr':
             self.__dict__['_cached_tr'] = value
+        elif name == 'prev_q':
+            self.__dict__['prev_q'] = value
         else:
             raise NameError, "Unknown attribute <%s> of link" % name
 
@@ -356,6 +360,8 @@ class Link:
                             [0,  sa,     ca,     dn],
                             [0,  0,      0,      1]]);
                 return t
+            elif q == self.prev_q:
+                return self._cached_tr
             else:
                 self._cached_tr[0,0] = ct
                 self._cached_tr[0,1] = -st*ca
@@ -368,6 +374,7 @@ class Link:
                 self._cached_tr[2,1] = sa
                 self._cached_tr[2,2] = ca
                 self._cached_tr[2,3] = dn
+                self.prev_q = q
                 return self._cached_tr
 
         else:
