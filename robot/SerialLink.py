@@ -78,7 +78,7 @@ class SerialLink(object):
         elif len(arg) > 1 and isinstance(arg[0], Link):
             self.links = arg;
         else:
-            raise AttributeError;
+            raise AttributeError
 
         # fill in default base and gravity direction
         if gravity != None:

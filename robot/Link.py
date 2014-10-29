@@ -52,7 +52,7 @@ class Link:
     LINK_DH = 1
     LINK_MDH = 2
 
-    def __init__(self, theta=0, d=0, a=0, alpha=0, sigma=0, convention=LINK_DH):
+    def __init__(self, theta=0, d=0, a=0, alpha=0, sigma=0, offset=0, convention=LINK_DH):
         """
         L = LINK([theta d a alpha])
         L = LINK([theta d a alpha sigma])
@@ -76,6 +76,7 @@ class Link:
         self.alpha = alpha
         self.sigma = sigma
         self.convention = convention
+        self.offset = offset
 
         # we know nothing about the dynamics
         self.m = None
@@ -335,7 +336,7 @@ class Link:
         @return: Link transform M{A(q)}
         """
         if hasattr(self, 'offset'):
-            q += self.offset        
+            q += self.offset
 
         an = self.a
         dn = self.d
