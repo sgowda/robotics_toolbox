@@ -10,6 +10,7 @@ from robot.utility import *
 from robot.transform import *
 from robot.kinematics import *
 from numpy.linalg import norm
+import numpy as np
 
 def jacob0(robot, q):
     """
@@ -29,10 +30,11 @@ def jacob0(robot, q):
     """
 
 
-    q = mat(q)
+    q = np.mat(q).reshape(-1, 1)
     Jn = jacobn(robot, q) # Jacobian from joint to wrist space
     #   convert to Jacobian in base coordinates
-    Tn = fkine(robot,q) # end-effector transformation
+    # Tn = fkine(robot,q) 
+    Tn, _ = robot.fkine(q) # end-effector transformation
     R = t2r(Tn)
     return concatenate( ( concatenate( (R,zeros((3,3))) ,1) , concatenate( (zeros((3,3)),R) ,1) ))*Jn
 
@@ -68,18 +70,21 @@ def jacobn(robot, q):
     U = robot.tool
     for j in range(n-1,-1,-1):
             if not robot.ismdh():    #standard DH convention
-                    U = L[j].tr(q[j])*U
+                U = L[j].tr(q[j])*U
+
             if L[j].sigma == 0: #revolute axis
-                    d = matrix([[-U[0,0]*U[1,3] + U[1,0]*U[0,3]],\
-                                [-U[0,1]*U[1,3] + U[1,1]*U[0,3]],\
-                                [-U[0,2]*U[1,3] + U[1,2]*U[0,3]]])
-                    delta = U[2,0:3].T   # nz  oz  az
+                d = np.mat([[-U[0,0]*U[1,3] + U[1,0]*U[0,3]],
+                            [-U[0,1]*U[1,3] + U[1,1]*U[0,3]],
+                            [-U[0,2]*U[1,3] + U[1,2]*U[0,3]]])
+                delta = U[2,0:3].T   # nz  oz  az
             else: #prismatic axis
-                    d = U[2,0:3].T       # nz  oz  az
-                    delta = zeros((3,1)) # 0   0   0
+                d = U[2,0:3].T       # nz  oz  az
+                delta = np.zeros((3,1)) # 0   0   0
+
             J = concatenate((concatenate((d,delta)),J),1)
+            
             if robot.ismdh(): #modified DH convention
-                    U=L[j].tr(q[j])*U
+                U=L[j].tr(q[j])*U
     return J
 
 

@@ -39,7 +39,7 @@ def fkine(robot, q, return_allt=False):
         t = t * robot.tool;
 
     else:
-        raise Exception('q must have %d columns' % n)
+        raise Exception('q must have %d rows' % n)
 
     return t, allt
     
